@@ -75,17 +75,12 @@ class DatasetFolder(VisionDataset):
 
     def __getitem__(self, index):
         paths, target = self.samples[index]
-        samples = None
+        samples = []
         for path in paths:
             sample = self.loader(path)
             if self.transform is not None:
                 sample = self.transform(sample)
-            if not torch.is_tensor(sample):
-                raise RuntimeError("Sample is not torch.Tensor")
-            if samples is None:
-                samples = sample.unsqueeze(0)
-            else:
-                samples = torch.cat((samples, sample.unsqueeze(0)), dim=0)
+            samples.append(sample)
             
         if self.target_transform is not None:
             target = self.target_transform(target)

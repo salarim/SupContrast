@@ -16,6 +16,7 @@ from util import adjust_learning_rate, warmup_learning_rate
 from util import set_optimizer, save_model
 from networks.resnet_big import SupConResNet
 from losses import SupConLoss
+from data_utils import ImageFolder
 
 try:
     import apex
@@ -53,7 +54,8 @@ def parse_option():
     # model dataset
     parser.add_argument('--model', type=str, default='resnet50')
     parser.add_argument('--dataset', type=str, default='cifar10',
-                        choices=['cifar10', 'cifar100'], help='dataset')
+                        choices=['cifar10', 'cifar100', 'shapenet'], help='dataset')
+    parser.add_argument('--data-folder', type=str, default='./datasets/')
 
     # method
     parser.add_argument('--method', type=str, default='SupCon',
@@ -76,7 +78,6 @@ def parse_option():
     opt = parser.parse_args()
 
     # set the path according to the environment
-    opt.data_folder = './datasets/'
     opt.model_path = './save/SupCon/{}_models'.format(opt.dataset)
     opt.tb_path = './save/SupCon/{}_tensorboard'.format(opt.dataset)
 
@@ -125,6 +126,9 @@ def set_loader(opt):
     elif opt.dataset == 'cifar100':
         mean = (0.5071, 0.4867, 0.4408)
         std = (0.2675, 0.2565, 0.2761)
+    elif opt.dataset == 'shapenet':
+        mean = (0.4914, 0.4822, 0.4465) #TODO
+        std = (0.2023, 0.1994, 0.2010) #TODO
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
@@ -138,7 +142,7 @@ def set_loader(opt):
         transforms.RandomGrayscale(p=0.2),
         transforms.ToTensor(),
         normalize,
-    ])
+    ]) #TODO
 
     if opt.dataset == 'cifar10':
         train_dataset = datasets.CIFAR10(root=opt.data_folder,
@@ -148,6 +152,8 @@ def set_loader(opt):
         train_dataset = datasets.CIFAR100(root=opt.data_folder,
                                           transform=TwoCropTransform(train_transform),
                                           download=True)
+    elif opt.dataset == 'shapenet':
+        train_dataset = ImageFolder(root=opt.data_folder, transform=train_transform)
     else:
         raise ValueError(opt.dataset)
 
@@ -189,18 +195,20 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
     for idx, (images, labels) in enumerate(train_loader):
         data_time.update(time.time() - end)
 
-        images = torch.cat([images[0], images[1]], dim=0)
+        bsz = labels.shape[0]
+        views = len(images)
+        images = torch.cat(images, dim=0)
         images = images.cuda(non_blocking=True)
         labels = labels.cuda(non_blocking=True)
-        bsz = labels.shape[0]
 
         # warm-up learning rate
         warmup_learning_rate(opt, epoch, idx, len(train_loader), optimizer)
 
         # compute loss
         features = model(images)
-        f1, f2 = torch.split(features, [bsz, bsz], dim=0)
-        features = torch.cat([f1.unsqueeze(1), f2.unsqueeze(1)], dim=1)
+        features = torch.split(features, [bsz]*views, dim=0)
+        features = [f.unsqueeze(1) for f in features]
+        features = torch.cat(features, dim=1)
         if opt.method == 'SupCon':
             loss = criterion(features, labels)
         elif opt.method == 'SimCLR':
