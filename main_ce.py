@@ -15,6 +15,7 @@ from util import AverageMeter
 from util import adjust_learning_rate, warmup_learning_rate, accuracy
 from util import set_optimizer, save_model
 from networks.resnet_big import SupCEResNet
+from data_utils import ImageFolder
 
 try:
     import apex
@@ -52,7 +53,8 @@ def parse_option():
     # model dataset
     parser.add_argument('--model', type=str, default='resnet50')
     parser.add_argument('--dataset', type=str, default='cifar10',
-                        choices=['cifar10', 'cifar100'], help='dataset')
+                        choices=['cifar10', 'cifar100', 'shapenet'], help='dataset')
+    parser.add_argument('--data-folder', type=str, default='./datasets/')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -67,7 +69,6 @@ def parse_option():
     opt = parser.parse_args()
 
     # set the path according to the environment
-    opt.data_folder = './datasets/'
     opt.model_path = './save/SupCon/{}_models'.format(opt.dataset)
     opt.tb_path = './save/SupCon/{}_tensorboard'.format(opt.dataset)
 
@@ -109,6 +110,8 @@ def parse_option():
         opt.n_cls = 10
     elif opt.dataset == 'cifar100':
         opt.n_cls = 100
+    elif opt.dataset == 'shapenet':
+        opt.n_cls = 55 #TODO
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
@@ -123,6 +126,9 @@ def set_loader(opt):
     elif opt.dataset == 'cifar100':
         mean = (0.5071, 0.4867, 0.4408)
         std = (0.2675, 0.2565, 0.2761)
+    elif opt.dataset == 'shapenet':
+        mean = (0.1575,0.1497, 0.1429) #TODO
+        std = (0.2985, 0.2891, 0.2827) #TODO
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
@@ -153,16 +159,20 @@ def set_loader(opt):
         val_dataset = datasets.CIFAR100(root=opt.data_folder,
                                         train=False,
                                         transform=val_transform)
+    elif opt.dataset == 'shapenet':
+        train_dataset = ImageFolder(root=os.path.join(opt.data_folder, 'train'),
+                                          transform=train_transform)
+        val_dataset = ImageFolder(root=os.path.join(opt.data_folder, 'val'),
+                                          transform=val_transform)
     else:
         raise ValueError(opt.dataset)
 
-    train_sampler = None
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
-        num_workers=opt.num_workers, pin_memory=True, sampler=train_sampler)
+        train_dataset, batch_size=opt.batch_size, shuffle=True,
+        num_workers=opt.num_workers, pin_memory=True)
     val_loader = torch.utils.data.DataLoader(
-        val_dataset, batch_size=256, shuffle=False,
-        num_workers=8, pin_memory=True)
+        val_dataset, batch_size=opt.batch_size, shuffle=False,
+        num_workers=opt.num_workers, pin_memory=True)
 
     return train_loader, val_loader
 
@@ -197,6 +207,11 @@ def train(train_loader, model, criterion, optimizer, epoch, opt):
     end = time.time()
     for idx, (images, labels) in enumerate(train_loader):
         data_time.update(time.time() - end)
+
+        if type(images) == list:
+            views = len(images)
+            images = torch.cat(images, dim=0)
+            labels = labels.repeat(views)
 
         images = images.cuda(non_blocking=True)
         labels = labels.cuda(non_blocking=True)
@@ -248,6 +263,11 @@ def validate(val_loader, model, criterion, opt):
     with torch.no_grad():
         end = time.time()
         for idx, (images, labels) in enumerate(val_loader):
+            if type(images) == list:
+                views = len(images)
+                images = torch.cat(images, dim=0)
+                labels = labels.repeat(views)
+            
             images = images.float().cuda()
             labels = labels.cuda()
             bsz = labels.shape[0]
