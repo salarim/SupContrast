@@ -153,7 +153,8 @@ def set_loader(opt):
                                           transform=TwoCropTransform(train_transform),
                                           download=True)
     elif opt.dataset == 'shapenet':
-        train_dataset = ImageFolder(root=opt.data_folder, transform=train_transform)
+        train_dataset = ImageFolder(root=os.path.join(opt.data_folder, 'train'),
+                                          transform=train_transform)
     else:
         raise ValueError(opt.dataset)
 
