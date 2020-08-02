@@ -51,6 +51,7 @@ def parse_option():
     parser.add_argument('--model', type=str, default='resnet50')
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100', 'shapenet'], help='dataset')
+    parser.add_argument('--data-folder', type=str, default='./datasets/')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -63,8 +64,6 @@ def parse_option():
 
     opt = parser.parse_args()
 
-    # set the path according to the environment
-    opt.data_folder = './datasets/'
 
     iterations = opt.lr_decay_epochs.split(',')
     opt.lr_decay_epochs = list([])
@@ -94,6 +93,8 @@ def parse_option():
         opt.n_cls = 10
     elif opt.dataset == 'cifar100':
         opt.n_cls = 100
+    elif opt.dataset == 'shapenet':
+        opt.n_cls = 55 #TODO
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
@@ -142,6 +143,11 @@ def train(train_loader, model, classifier, criterion, optimizer, epoch, opt):
     for idx, (images, labels) in enumerate(train_loader):
         data_time.update(time.time() - end)
 
+        if type(images) == list:
+            views = len(images)
+            images = torch.cat(images, dim=0)
+            labels = labels.repeat(views)
+        
         images = images.cuda(non_blocking=True)
         labels = labels.cuda(non_blocking=True)
         bsz = labels.shape[0]
@@ -195,6 +201,11 @@ def validate(val_loader, model, classifier, criterion, opt):
     with torch.no_grad():
         end = time.time()
         for idx, (images, labels) in enumerate(val_loader):
+            if type(images) == list:
+                views = len(images)
+                images = torch.cat(images, dim=0)
+                labels = labels.repeat(views)
+            
             images = images.float().cuda()
             labels = labels.cuda()
             bsz = labels.shape[0]

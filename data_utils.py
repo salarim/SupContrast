@@ -39,7 +39,7 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
                     path = os.path.join(root, fname)
                     if is_valid_file(path):
                         paths.append(path)
-            if len(paths) > 0:
+            if len(paths) == 30:
                 item = paths, class_index
                 instances.append(item)
     return instances
