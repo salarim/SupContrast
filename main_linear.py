@@ -52,6 +52,8 @@ def parse_option():
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100', 'shapenet'], help='dataset')
     parser.add_argument('--data-folder', type=str, default='./datasets/')
+    parser.add_argument('--views', type=int, default=2,
+                        help='views')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',

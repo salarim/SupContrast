@@ -56,6 +56,8 @@ def parse_option():
     parser.add_argument('--dataset', type=str, default='cifar10',
                         choices=['cifar10', 'cifar100', 'shapenet'], help='dataset')
     parser.add_argument('--data-folder', type=str, default='./datasets/')
+    parser.add_argument('--views', type=int, default=2,
+                        help='views')
 
     # method
     parser.add_argument('--method', type=str, default='SupCon',
@@ -154,7 +156,7 @@ def set_loader(opt):
                                           download=True)
     elif opt.dataset == 'shapenet':
         train_dataset = ImageFolder(root=os.path.join(opt.data_folder, 'train'),
-                                          transform=train_transform)
+                                          transform=train_transform, views=opt.views)
     else:
         raise ValueError(opt.dataset)
 

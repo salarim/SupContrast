@@ -5,6 +5,7 @@ from PIL import Image
 
 import os
 import os.path
+import random
 
 
 def has_file_allowed_extension(filename, extensions):
@@ -15,7 +16,7 @@ def is_image_file(filename):
     return has_file_allowed_extension(filename, IMG_EXTENSIONS)
 
 
-def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
+def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=None):
     instances = []
     directory = os.path.expanduser(directory)
     both_none = extensions is None and is_valid_file is None
@@ -40,6 +41,7 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
                     if is_valid_file(path):
                         paths.append(path)
             if len(paths) == 30:
+                paths = random.sample(paths, views)
                 item = paths, class_index
                 instances.append(item)
     return instances
@@ -48,11 +50,11 @@ def make_dataset(directory, class_to_idx, extensions=None, is_valid_file=None):
 class DatasetFolder(VisionDataset):
 
     def __init__(self, root, loader, extensions=None, transform=None,
-                 target_transform=None, is_valid_file=None):
+                 target_transform=None, is_valid_file=None, views=30):
         super(DatasetFolder, self).__init__(root, transform=transform,
                                             target_transform=target_transform)
         classes, class_to_idx = self._find_classes(self.root)
-        samples = make_dataset(self.root, class_to_idx, extensions, is_valid_file)
+        samples = make_dataset(self.root, class_to_idx, views, extensions, is_valid_file)
         if len(samples) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.root)
             if extensions is not None:
@@ -121,9 +123,10 @@ def default_loader(path):
 class ImageFolder(DatasetFolder):
 
     def __init__(self, root, transform=None, target_transform=None,
-                 loader=default_loader, is_valid_file=None):
+                 loader=default_loader, is_valid_file=None, views=30):
         super(ImageFolder, self).__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
                                           transform=transform,
                                           target_transform=target_transform,
-                                          is_valid_file=is_valid_file)
+                                          is_valid_file=is_valid_file,
+                                          views=views)
         self.imgs = self.samples
