@@ -27,6 +27,7 @@ def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=
         def is_valid_file(x):
             return has_file_allowed_extension(x, extensions)
     for target_class in sorted(class_to_idx.keys()):
+        target_class_instances = []
         class_index = class_to_idx[target_class]
         target_dir = os.path.join(directory, target_class)
         if not os.path.isdir(target_dir):
@@ -43,7 +44,13 @@ def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=
             if len(paths) == 30:
                 paths = random.sample(paths, views)
                 item = paths, class_index
-                instances.append(item)
+                target_class_instances.append(item)
+        
+        base_views = 2
+        view_increased_ratio = int(views / base_views)
+        target_class_len = int(len(target_class_instances) / view_increased_ratio)
+        target_class_instances = random.sample(target_class_instances, target_class_len)
+        instances.extend(target_class_instances)
     return instances
 
 
