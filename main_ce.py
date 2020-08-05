@@ -163,9 +163,9 @@ def set_loader(opt):
                                         transform=val_transform)
     elif opt.dataset == 'shapenet':
         train_dataset = ImageFolder(root=os.path.join(opt.data_folder, 'train'),
-                                          transform=train_transform, views=opt.views)
+                                          transform=train_transform, views=opt.views, train=True)
         val_dataset = ImageFolder(root=os.path.join(opt.data_folder, 'val'),
-                                          transform=val_transform, views=opt.views)
+                                          transform=val_transform, views=opt.views, train=False)
     else:
         raise ValueError(opt.dataset)
 

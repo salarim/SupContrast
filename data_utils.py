@@ -16,7 +16,7 @@ def is_image_file(filename):
     return has_file_allowed_extension(filename, IMG_EXTENSIONS)
 
 
-def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=None):
+def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=None, drop_objects=False):
     instances = []
     directory = os.path.expanduser(directory)
     both_none = extensions is None and is_valid_file is None
@@ -46,10 +46,11 @@ def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=
                 item = paths, class_index
                 target_class_instances.append(item)
         
-        base_views = 2
-        view_increased_ratio = int(views / base_views)
-        target_class_len = int(len(target_class_instances) / view_increased_ratio)
-        target_class_instances = random.sample(target_class_instances, target_class_len)
+        if drop_objects:
+            base_views = 2
+            view_increased_ratio = int(views / base_views)
+            target_class_len = int(len(target_class_instances) / view_increased_ratio)
+            target_class_instances = random.sample(target_class_instances, target_class_len)
         instances.extend(target_class_instances)
     return instances
 
@@ -57,11 +58,11 @@ def make_dataset(directory, class_to_idx, views, extensions=None, is_valid_file=
 class DatasetFolder(VisionDataset):
 
     def __init__(self, root, loader, extensions=None, transform=None,
-                 target_transform=None, is_valid_file=None, views=30):
+                 target_transform=None, is_valid_file=None, views=30, train=True):
         super(DatasetFolder, self).__init__(root, transform=transform,
                                             target_transform=target_transform)
         classes, class_to_idx = self._find_classes(self.root)
-        samples = make_dataset(self.root, class_to_idx, views, extensions, is_valid_file)
+        samples = make_dataset(self.root, class_to_idx, views, extensions, is_valid_file, drop_objects=train)
         if len(samples) == 0:
             msg = "Found 0 files in subfolders of: {}\n".format(self.root)
             if extensions is not None:
@@ -130,10 +131,11 @@ def default_loader(path):
 class ImageFolder(DatasetFolder):
 
     def __init__(self, root, transform=None, target_transform=None,
-                 loader=default_loader, is_valid_file=None, views=30):
+                 loader=default_loader, is_valid_file=None, views=30, train=True):
         super(ImageFolder, self).__init__(root, loader, IMG_EXTENSIONS if is_valid_file is None else None,
                                           transform=transform,
                                           target_transform=target_transform,
                                           is_valid_file=is_valid_file,
-                                          views=views)
+                                          views=views,
+                                          train=train)
         self.imgs = self.samples
