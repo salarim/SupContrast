@@ -54,6 +54,8 @@ def parse_option():
     parser.add_argument('--data-folder', type=str, default='./datasets/')
     parser.add_argument('--views', type=int, default=2,
                         help='views')
+    parser.add_argument('--drop-objects-ratio', type=float, default=0.0,
+                        help='Drop objects ratio')
 
     # other setting
     parser.add_argument('--cosine', action='store_true',
@@ -72,9 +74,9 @@ def parse_option():
     for it in iterations:
         opt.lr_decay_epochs.append(int(it))
 
-    opt.model_name = '{}_{}_lr_{}_decay_{}_bsz_{}'.\
+    opt.model_name = '{}_{}_lr_{}_decay_{}_bsz_{}_v_{}_dr_{}'.\
         format(opt.dataset, opt.model, opt.learning_rate, opt.weight_decay,
-               opt.batch_size)
+               opt.batch_size, opt.views, opt.drop_objects_ratio)
 
     if opt.cosine:
         opt.model_name = '{}_cosine'.format(opt.model_name)
