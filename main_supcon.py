@@ -132,8 +132,8 @@ def set_loader(opt):
         mean = (0.5071, 0.4867, 0.4408)
         std = (0.2675, 0.2565, 0.2761)
     elif opt.dataset == 'shapenet':
-        mean = (0.1575,0.1497, 0.1429) #TODO
-        std = (0.2985, 0.2891, 0.2827) #TODO
+        mean = (0.1575,0.1497, 0.1429) 
+        std = (0.2985, 0.2891, 0.2827) 
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
@@ -147,7 +147,7 @@ def set_loader(opt):
         transforms.RandomGrayscale(p=0.2),
         transforms.ToTensor(),
         normalize,
-    ]) #TODO
+    ]) 
 
     if opt.dataset == 'cifar10':
         train_dataset = datasets.CIFAR10(root=opt.data_folder,

@@ -98,7 +98,7 @@ def parse_option():
     elif opt.dataset == 'cifar100':
         opt.n_cls = 100
     elif opt.dataset == 'shapenet':
-        opt.n_cls = 55 #TODO
+        opt.n_cls = 55 
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 

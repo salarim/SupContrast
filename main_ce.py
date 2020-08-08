@@ -115,7 +115,7 @@ def parse_option():
     elif opt.dataset == 'cifar100':
         opt.n_cls = 100
     elif opt.dataset == 'shapenet':
-        opt.n_cls = 55 #TODO
+        opt.n_cls = 55
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
 
@@ -131,8 +131,8 @@ def set_loader(opt):
         mean = (0.5071, 0.4867, 0.4408)
         std = (0.2675, 0.2565, 0.2761)
     elif opt.dataset == 'shapenet':
-        mean = (0.1575,0.1497, 0.1429) #TODO
-        std = (0.2985, 0.2891, 0.2827) #TODO
+        mean = (0.1575,0.1497, 0.1429) 
+        std = (0.2985, 0.2891, 0.2827) 
     else:
         raise ValueError('dataset not supported: {}'.format(opt.dataset))
     normalize = transforms.Normalize(mean=mean, std=std)
