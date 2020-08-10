@@ -2,6 +2,14 @@ import os
 import subprocess
 from itertools import product
 
+# env_vars = [
+#             first_dependent_set,
+#             second_dependent_set,
+#             ...,
+#             ith_dependent_set={'first_var':[ordered_possible_values_for_the_first_var],
+#                                   ...,
+#                                 }
+#             ]
 env_vars = [{'BATCH_SIZE':['2048','1024','512','256','128'],
              'VIEWS':['2','4','8','16','30'],
              'DROP_RATIO':['0.0','0.5','0.75','0.875','0.933']}]
