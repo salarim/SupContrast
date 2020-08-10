@@ -12,7 +12,7 @@
 
 export BATCH_SIZE="${BATCH_SIZE:=2048}"
 export VIEWS="${VIEWS:=2}"
-export DROP_RATIO="${DROP_RATOI:=0.0}"
+export DROP_RATIO="${DROP_RATIO:=0.0}"
 
 
 cd $SLURM_TMPDIR
