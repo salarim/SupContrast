@@ -93,6 +93,9 @@ class DatasetFolder(VisionDataset):
         if self.target_transform is not None:
             target = self.target_transform(target)
 
+        if len(samples) == 1:
+            samples = samples[0]
+
         return samples, target
 
     def __len__(self):
