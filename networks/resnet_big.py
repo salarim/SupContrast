@@ -207,3 +207,16 @@ class LinearClassifier(nn.Module):
 
     def forward(self, features):
         return self.fc(features)
+
+
+class MLP(nn.Module):
+    def __init__(self, dim=128, projection_size=128, hidden_size = 2048): #TODO dimensions
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Linear(dim, hidden_size),
+            nn.ReLU(inplace=True),
+            nn.Linear(hidden_size, projection_size)
+        )
+
+    def forward(self, x):
+        return self.net(x)
