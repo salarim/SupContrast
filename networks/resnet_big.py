@@ -44,6 +44,7 @@ class SupConResNet(nn.Module):
         elif head == 'mlp':
             self.head = nn.Sequential(
                 nn.Linear(dim_in, dim_in),
+                nn.BatchNorm1d(dim_in),
                 nn.ReLU(inplace=True),
                 nn.Linear(dim_in, feat_dim)
             )
@@ -85,6 +86,7 @@ class MLP(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(dim, hidden_size),
+            nn.BatchNorm1d(hidden_size),
             nn.ReLU(inplace=True),
             nn.Linear(hidden_size, projection_size)
         )

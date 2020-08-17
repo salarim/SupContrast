@@ -2,7 +2,7 @@
 #SBATCH --mail-user=salari.m1375@gmail.com
 #SBATCH --mail-type=ALL
 #SBATCH --account=def-mori_gpu
-#SBATCH --job-name=BYOL-cifar10-bs1024-e100-lr0.1-resnet18
+#SBATCH --job-name=SimCLR-cifar10-bs1024-e100-lr0.1-myresnet18-BNmlp
 #SBATCH --output=%x-%j.out
 #SBATCH --ntasks=1
 #SBATCH --time=2:59:00
@@ -36,11 +36,11 @@ pip install --no-index -r requirements.txt
 #	--data-folder datasets/${DATASET} --views 2
 
 
-#python main_supcon.py --epochs 100 --batch_size $BATCH_SIZE --learning_rate 0.5 --temp 0.1 --cosine --model resnet18 --dataset $DATASET \
-#	--data-folder datasets/${DATASET} --views $VIEWS --drop-objects-ratio $DROP_RATIO --method SimCLR
+python main_supcon.py --epochs 100 --batch_size $BATCH_SIZE --learning_rate 0.5 --temp 0.1 --cosine --model resnet18 --dataset $DATASET \
+	--data-folder datasets/${DATASET} --views $VIEWS --drop-objects-ratio $DROP_RATIO --method SimCLR
 
-python main_byol.py --epochs 100 --batch_size $BATCH_SIZE --learning_rate 0.1 --model resnet18 --dataset $DATASET \
-	        --data-folder datasets/${DATASET} --views $VIEWS --drop-objects-ratio $DROP_RATIO
+#python main_byol.py --epochs 100 --batch_size $BATCH_SIZE --learning_rate 0.1 --model resnet18 --dataset $DATASET \
+#	        --data-folder datasets/${DATASET} --views $VIEWS --drop-objects-ratio $DROP_RATIO
 
 
 python main_linear.py --epochs 20 --batch_size 128 --learning_rate 0.1 --model resnet18 --ckpt save/SupCon/${DATASET}_models/*/last.pth \
